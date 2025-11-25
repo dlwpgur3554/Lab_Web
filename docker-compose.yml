@@ -1,0 +1,58 @@
+services:
+  db:
+    image: mysql:8.0
+    container_name: lab-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: lab
+      MYSQL_USER: lab
+      MYSQL_PASSWORD: lab
+    ports:
+      - "3306:3306"
+    command: ["mysqld", "--character-set-server=utf8mb4", "--collation-server=utf8mb4_0900_ai_ci", "--default-time-zone=+09:00"]
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-proot"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: ./backend
+    image: lab-backend:latest
+    container_name: labpageBE
+    environment:
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_NAME: lab
+      DB_USER: lab
+      DB_PASSWORD: lab
+      PORT: 8080
+      APP_BASE_URL: http://172.21.166.238:3000
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "5000:8080"
+    volumes:
+      - uploads:/app/uploads
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_BASE_URL: /api
+    image: lab-frontend:latest
+    container_name: labappFE
+    depends_on:
+      - backend
+    ports:
+      - "3000:80"
+    volumes:
+      - uploads:/usr/share/nginx/html/uploads:ro
+
+volumes:
+  db_data:
+  uploads:
