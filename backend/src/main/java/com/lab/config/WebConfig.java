@@ -22,9 +22,16 @@ public class WebConfig implements WebMvcConfigurer {
             "http://localhost:3000"
         ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        config.setAllowedHeaders(List.of("*"));
-        config.setExposedHeaders(List.of("*"));
+        // 필요한 헤더만 허용
+        config.setAllowedHeaders(List.of(
+            "Authorization",
+            "Content-Type",
+            "X-USER", // 하위 호환성
+            "X-Requested-With"
+        ));
+        config.setExposedHeaders(List.of("Authorization"));
         config.setAllowCredentials(true);
+        config.setMaxAge(3600L); // preflight 캐시 시간
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);

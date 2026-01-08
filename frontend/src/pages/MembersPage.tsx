@@ -14,6 +14,7 @@ type Member = {
   bio?: string
   photoUrl?: string
   degree?: string
+  graduationYear?: number
 }
 
 export function MembersPage() {
@@ -120,28 +121,63 @@ export function MembersPage() {
         </div>
       )}
 
-      {/* Alumni 전용 섹션 */}
-      {type === 'alumni' && (
-        <div className="section">
-          <h2 className="card-title" style={{ fontSize: '1.5rem', marginBottom: 20, borderBottom: '2px solid #28a745', paddingBottom: 10 }}>
-            Alumni
-          </h2>
-          <div className="grid" style={{ gap: 32, gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', justifyItems: 'center' as any }}>
-            {filteredMembers.map((member) => (
-              <div key={member.id} style={{ padding: 8, textAlign: 'center' }}>
-                <div style={{ width: 180, height: 180, margin: '0 auto 12px', borderRadius: '50%', overflow: 'hidden', background: '#fff', border: '1px solid #eee' }}>
-                  {member.photoUrl && (
-                    <img src={member.photoUrl} alt={member.name} style={{ width: '100%', height: '100%', objectFit: 'contain', background: '#fff' }} />
-                  )}
+      {/* Alumni 전용 섹션 - 년도별 그룹화 */}
+      {type === 'alumni' && (() => {
+        // 년도별로 그룹화 (졸업 년도가 없는 경우 "기타"로 분류)
+        const groupedByYear = filteredMembers.reduce((acc, member) => {
+          const year = member.graduationYear || 0; // 년도가 없으면 0으로 처리
+          if (!acc[year]) {
+            acc[year] = [];
+          }
+          acc[year].push(member);
+          return acc;
+        }, {} as Record<number, Member[]>);
+
+        // 년도별로 정렬 (오름차순: 오래된 년도가 먼저, 기타는 맨 뒤)
+        const sortedYears = Object.keys(groupedByYear)
+          .map(Number)
+          .sort((a, b) => {
+            if (a === 0) return 1; // 기타는 맨 뒤
+            if (b === 0) return -1;
+            return a - b; // 오름차순
+          });
+
+        return (
+          <div className="section">
+            <h2 className="card-title" style={{ fontSize: '1.5rem', marginBottom: 30, borderBottom: '2px solid #28a745', paddingBottom: 10 }}>
+              Alumni
+            </h2>
+            {sortedYears.map((year) => (
+              <div key={year} style={{ marginBottom: 40 }}>
+                <h3 className="card-title" style={{ 
+                  fontSize: '1.3rem', 
+                  marginBottom: 20, 
+                  color: '#222',
+                  fontWeight: 700,
+                  borderBottom: '1px solid #e0e0e0',
+                  paddingBottom: 8
+                }}>
+                  {year === 0 ? '기타' : `${year}년 졸업`}
+                </h3>
+                <div className="grid" style={{ gap: 32, gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', justifyItems: 'center' as any }}>
+                  {groupedByYear[year].map((member) => (
+                    <div key={member.id} style={{ padding: 8, textAlign: 'center' }}>
+                      <div style={{ width: 180, height: 180, margin: '0 auto 12px', borderRadius: '50%', overflow: 'hidden', background: '#fff', border: '1px solid #eee' }}>
+                        {member.photoUrl && (
+                          <img src={member.photoUrl} alt={member.name} style={{ width: '100%', height: '100%', objectFit: 'contain', background: '#fff' }} />
+                        )}
+                      </div>
+                      {member.email && <div style={{ color: '#666', fontSize: 14, marginBottom: 4 }}>{member.email}</div>}
+                      {member.degree && <div style={{ color: '#888', fontSize: 13, marginBottom: 10 }}>{member.degree}</div>}
+                      <div style={{ fontWeight: 800, fontSize: 16 }}>{member.name}</div>
+                    </div>
+                  ))}
                 </div>
-                {member.email && <div style={{ color: '#666', fontSize: 14, marginBottom: 4 }}>{member.email}</div>}
-                {member.degree && <div style={{ color: '#888', fontSize: 13, marginBottom: 10 }}>{member.degree}</div>}
-                <div style={{ fontWeight: 800, fontSize: 16 }}>{member.name}</div>
               </div>
             ))}
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* 교수 외 구성원 (Current) */}
       {type !== 'professor' && type !== 'alumni' && groupedMembers.NON_PROFESSOR.length > 0 && (
@@ -157,7 +193,6 @@ export function MembersPage() {
                     <img src={member.photoUrl} alt={member.name} style={{ width: '100%', height: '100%', objectFit: 'contain', background: '#fff' }} />
                   )}
                 </div>
-                {member.email && <div style={{ color: '#666', fontSize: 14, marginBottom: 4 }}>{member.email}</div>}
                 {member.degree && <div style={{ color: '#888', fontSize: 13, marginBottom: 10 }}>{member.degree}</div>}
                 <div style={{ fontWeight: 800, fontSize: 16 }}>{member.name}</div>
               </div>

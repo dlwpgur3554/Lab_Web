@@ -4,6 +4,8 @@ import com.lab.domain.Member;
 import com.lab.domain.Role;
 import com.lab.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.Set;
@@ -14,6 +16,15 @@ public class AuthService {
     private final MemberRepository memberRepository;
 
     public Member getRequester(String requesterIdentifier) {
+        // JWT 인증 우선 (Spring Security Context에서 가져오기)
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.isAuthenticated() && auth.getPrincipal() instanceof String) {
+            String loginId = (String) auth.getPrincipal();
+            return memberRepository.findByLoginId(loginId)
+                    .orElseThrow(() -> new IllegalArgumentException("로그인 후 이용해주세요."));
+        }
+        
+        // 하위 호환성: X-USER 헤더 지원
         String id = requesterIdentifier == null ? "" : requesterIdentifier.trim();
         if (id.isEmpty()) {
             throw new IllegalArgumentException("로그인 후 이용해주세요.");

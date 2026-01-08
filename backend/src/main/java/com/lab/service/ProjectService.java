@@ -93,11 +93,11 @@ public class ProjectService {
         // description에서 파일 URL 추출 및 삭제
         String description = project.getDescription();
         if (description != null && !description.isBlank()) {
-            // 이미지 마크다운: ![alt](url)
+            
             Pattern imagePattern = Pattern.compile("!\\[[^\\]]*\\]\\(([^)]+)\\)");
-            // 파일 링크: [파일](url)
+            
             Pattern filePattern = Pattern.compile("\\[파일\\]\\(([^)]+)\\)");
-            // 일반 이미지 URL: http://.../uploads/...
+            
             Pattern urlPattern = Pattern.compile("(https?://[^\\s)]+/uploads/[^\\s)]+)");
             
             deleteFilesFromDescription(description, imagePattern);
@@ -113,26 +113,25 @@ public class ProjectService {
         while (matcher.find()) {
             String url = matcher.group(1);
             try {
-                // URL에서 파일명 추출
-                // 예: http://localhost:8080/uploads/1234567890-filename.jpg -> 1234567890-filename.jpg
+                
                 String filename = extractFilenameFromUrl(url);
                 if (filename != null && !filename.isBlank()) {
                     java.nio.file.Path filePath = Paths.get("uploads").resolve(filename);
                     Files.deleteIfExists(filePath);
                 }
             } catch (IOException ignored) {
-                // 파일 삭제 실패는 무시 (이미 삭제되었거나 존재하지 않을 수 있음)
+            
             }
         }
     }
     
     private String extractFilenameFromUrl(String url) {
         try {
-            // URL에서 /uploads/ 이후 부분 추출
+            
             int uploadsIndex = url.indexOf("/uploads/");
             if (uploadsIndex != -1) {
                 String pathPart = url.substring(uploadsIndex + "/uploads/".length());
-                // 쿼리 파라미터나 앵커 제거
+                
                 int queryIndex = pathPart.indexOf('?');
                 if (queryIndex != -1) {
                     pathPart = pathPart.substring(0, queryIndex);

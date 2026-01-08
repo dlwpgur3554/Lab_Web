@@ -3,17 +3,23 @@ services:
     image: mysql:8.0
     container_name: lab-mysql
     environment:
-      MYSQL_ROOT_PASSWORD: root
+      # MySQL Root 비밀번호 (프로덕션에서는 반드시 .env 파일에 설정하세요!)
+      # ⚠️ .env 파일에 MYSQL_ROOT_PASSWORD를 반드시 설정하세요! 기본값은 보안 위험이 있습니다!
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-CHANGE-THIS-IN-PRODUCTION}
       MYSQL_DATABASE: lab
       MYSQL_USER: lab
-      MYSQL_PASSWORD: lab
+      # MySQL 사용자 비밀번호 (프로덕션에서는 반드시 .env 파일에 설정하세요!)
+      # ⚠️ .env 파일에 MYSQL_PASSWORD를 반드시 설정하세요! 기본값은 보안 위험이 있습니다!
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-CHANGE-THIS-IN-PRODUCTION}
     ports:
       - "3306:3306"
     command: ["mysqld", "--character-set-server=utf8mb4", "--collation-server=utf8mb4_0900_ai_ci", "--default-time-zone=+09:00"]
     volumes:
       - db_data:/var/lib/mysql
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-proot"]
+      # Health check: MySQL 서버가 응답하는지 확인
+      # 환경 변수는 컨테이너 내부에서 사용 가능하므로 쉘을 통해 접근합니다
+      test: ["CMD", "sh", "-c", "mysqladmin ping -h localhost -uroot -p\"$MYSQL_ROOT_PASSWORD\" || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -28,9 +34,18 @@ services:
       DB_PORT: 3306
       DB_NAME: lab
       DB_USER: lab
-      DB_PASSWORD: lab
+      # 데이터베이스 비밀번호 (프로덕션에서는 반드시 .env 파일에 설정하세요!)
+      # ⚠️ .env 파일에 DB_PASSWORD를 반드시 설정하세요! 기본값은 보안 위험이 있습니다!
+      DB_PASSWORD: ${DB_PASSWORD:-CHANGE-THIS-IN-PRODUCTION}
       PORT: 8080
       APP_BASE_URL: http://172.21.166.238:3000
+      # JWT 시크릿 키 (프로덕션에서는 반드시 .env 파일에 설정하세요!)
+      # 생성 방법: openssl rand -base64 32
+      # 또는 PowerShell: [Convert]::ToBase64String((1..32 | ForEach-Object { Get-Random -Minimum 0 -Maximum 256 }))
+      # ⚠️ .env 파일에 JWT_SECRET을 반드시 설정하세요! 기본값은 개발용이며 보안 위험이 있습니다!
+      # .env 파일이 없으면 아래 기본값이 사용되지만, 프로덕션에서는 절대 사용하지 마세요!
+      JWT_SECRET: ${JWT_SECRET:-CHANGE-THIS-IN-PRODUCTION-MINIMUM-256-BITS-REQUIRED}
+      JWT_EXPIRATION: ${JWT_EXPIRATION:-86400000}
     depends_on:
       db:
         condition: service_healthy

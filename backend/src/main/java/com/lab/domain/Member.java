@@ -40,6 +40,7 @@ public class Member {
     // 추가 프로필 정보
     private String degree;     // 학위
     private String photoUrl;   // 프로필 사진 URL (base64 또는 외부 경로)
+    private Integer graduationYear;  // 졸업 년도 (Alumni용)
 
     // 멤버 표시 순서 (작을수록 위)
     @Column(nullable = false)

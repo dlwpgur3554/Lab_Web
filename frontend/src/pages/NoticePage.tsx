@@ -34,25 +34,27 @@ export function NoticePage() {
     <div className="container">
       <div className="section" style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
         <h1 className="card-title" style={{ fontSize: '2rem', marginBottom: 0 }}>공지사항</h1>
-        <button
-          onClick={() => { window.location.href = '/notices/new' }}
-          style={{
-            background: 'var(--color-primary)',
-            color: 'white',
-            border: 'none',
-            padding: '12px 24px',
-            borderRadius: 6,
-            fontSize: '1rem',
-            fontWeight: 600,
-            cursor: 'pointer',
-            width: 'fit-content',
-            transition: 'background 0.2s ease'
-          }}
-          onMouseOver={(e) => e.currentTarget.style.background = 'var(--color-primary-dark)'}
-          onMouseOut={(e) => e.currentTarget.style.background = 'var(--color-primary)'}
-        >
-          작성
-        </button>
+        {localStorage.getItem('lab_user') && (
+          <button
+            onClick={() => { window.location.href = '/notices/new' }}
+            style={{
+              background: 'var(--color-primary)',
+              color: 'white',
+              border: 'none',
+              padding: '12px 24px',
+              borderRadius: 6,
+              fontSize: '1rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              width: 'fit-content',
+              transition: 'background 0.2s ease'
+            }}
+            onMouseOver={(e) => e.currentTarget.style.background = 'var(--color-primary-dark)'}
+            onMouseOut={(e) => e.currentTarget.style.background = 'var(--color-primary)'}
+          >
+            작성
+          </button>
+        )}
       </div>
 
       <div className="section">

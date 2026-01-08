@@ -13,8 +13,16 @@ export function LoginPage() {
       const id = (loginId || '').trim()
       const pw = password || ''
       const { data } = await api.post('/auth/login', { loginId: id, password: pw })
-      // 간단: X-USER에 loginId 저장
-      localStorage.setItem('lab_user', data.loginId || id)
+      // JWT 토큰 저장
+      if (data.token) {
+        localStorage.setItem('lab_token', data.token)
+        localStorage.setItem('lab_user', data.loginId || id)
+      } else {
+        // 하위 호환성: 기존 방식
+        localStorage.setItem('lab_user', data.loginId || id)
+      }
+      // 커스텀 이벤트 발생하여 App 컴포넌트에 로그인 상태 변경 알림
+      window.dispatchEvent(new Event('lab-auth-change'))
       window.location.href = '/'
     } catch (err: any) {
       const msg = err?.response?.data?.message || 'Invalid ID or password'

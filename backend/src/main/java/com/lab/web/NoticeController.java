@@ -67,7 +67,7 @@ public class NoticeController {
     }
 
     @PostMapping(value = "", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public NoticeDetailDto create(@RequestHeader("X-USER") String requester,
+    public NoticeDetailDto create(@RequestHeader(value = "X-USER", required = false) String requester,
                                  @RequestPart("title") String title,
                                  @RequestPart("content") String content,
                                  @RequestPart(value = "category", required = false) String category,
@@ -87,7 +87,7 @@ public class NoticeController {
     }
 
     @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public NoticeDetailDto update(@RequestHeader("X-USER") String requester,
+    public NoticeDetailDto update(@RequestHeader(value = "X-USER", required = false) String requester,
                                   @PathVariable("id") Long id,
                                   @RequestPart("title") String title,
                                   @RequestPart("content") String content,
@@ -131,7 +131,7 @@ public class NoticeController {
     // Some clients/browsers don't send multipart with PUT consistently.
     // Accept multipart update via POST as well.
     @PostMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public NoticeDetailDto updateViaPost(@RequestHeader("X-USER") String requester,
+    public NoticeDetailDto updateViaPost(@RequestHeader(value = "X-USER", required = false) String requester,
                                          @PathVariable("id") Long id,
                                          @RequestPart("title") String title,
                                          @RequestPart("content") String content,
@@ -145,7 +145,7 @@ public class NoticeController {
 
     // 폼 전송 호환용(일부 환경에서 Content-Type 설정 문제로 415 발생 시 사용)
     @PostMapping(value = "/{id}/form")
-    public NoticeDetailDto updateViaForm(@RequestHeader("X-USER") String requester,
+    public NoticeDetailDto updateViaForm(@RequestHeader(value = "X-USER", required = false) String requester,
                                          @PathVariable("id") Long id,
                                          @RequestParam("title") String title,
                                          @RequestParam("content") String content,
@@ -159,7 +159,7 @@ public class NoticeController {
 
     // JSON 방식도 허용 (호환성)
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
-    public Notice createJson(@RequestHeader("X-USER") String requester,
+    public Notice createJson(@RequestHeader(value = "X-USER", required = false) String requester,
                              @RequestBody Notice body) {
         Member me = authService.getRequester(requester);
         body.setAuthor(me);
@@ -168,7 +168,7 @@ public class NoticeController {
     }
 
     @PutMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public Notice updateJson(@RequestHeader("X-USER") String requester,
+    public Notice updateJson(@RequestHeader(value = "X-USER", required = false) String requester,
                              @PathVariable("id") Long id,
                              @RequestBody Notice body) {
         Member me = authService.getRequester(requester);
@@ -189,14 +189,14 @@ public class NoticeController {
 
     // 일부 환경에서 PUT+JSON이 415로 막히는 이슈 대응: POST+JSON도 허용
     @PostMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public Notice updateJsonViaPost(@RequestHeader("X-USER") String requester,
+    public Notice updateJsonViaPost(@RequestHeader(value = "X-USER", required = false) String requester,
                                     @PathVariable("id") Long id,
                                     @RequestBody Notice body) {
         return updateJson(requester, id, body);
     }
 
     @DeleteMapping("/{id}")
-    public void delete(@RequestHeader("X-USER") String requester,
+    public void delete(@RequestHeader(value = "X-USER", required = false) String requester,
                        @PathVariable("id") Long id) {
         Member me = authService.getRequester(requester);
         Notice n = noticeRepository.findById(id).orElseThrow();
@@ -223,7 +223,7 @@ public class NoticeController {
 
     // 상단 고정/해제
     @PutMapping("/{id}/pin")
-    public void setPinned(@RequestHeader("X-USER") String requester,
+    public void setPinned(@RequestHeader(value = "X-USER", required = false) String requester,
                           @PathVariable("id") Long id,
                           @RequestParam("pinned") boolean pinned) {
         Member me = authService.getRequester(requester);
@@ -242,7 +242,7 @@ public class NoticeController {
 
     // 일부 환경에서 PUT 호출 제약 대응: POST 도 허용
     @PostMapping("/{id}/pin")
-    public void setPinnedViaPost(@RequestHeader("X-USER") String requester,
+    public void setPinnedViaPost(@RequestHeader(value = "X-USER", required = false) String requester,
                                  @PathVariable("id") Long id,
                                  @RequestParam("pinned") boolean pinned) {
         setPinned(requester, id, pinned);

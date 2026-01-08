@@ -33,7 +33,7 @@ main.container { flex: 1; width: 100%; }
 .site-header { position: sticky; top: 0; z-index: 1000; background: #3a4978; color: #fff; box-shadow: var(--shadow-sm); }
 .site-topbar { background:#f7f7f7; color:#555; }
 .site-topbar-inner { min-height: 72px; display:flex; align-items:center; justify-content:flex-end; }
-.topbar-brand { margin-right:auto; font-weight:900; color:#222; font-size:18px; }
+.topbar-brand { margin-right:auto; font-weight:900; color:#222; font-size:18px; display: flex; align-items: center; }
 .site-topbar-inner a { font-size:13px; margin-left:12px; color:#555; }
 .site-topbar-inner a { font-size:16px; }
 .site-topbar-inner a .home-badge { background:#3a4978; color:#fff; padding:6px 14px; border-radius:999px; }

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { api, withUser } from '../lib/api'
 
 type Member = {
@@ -13,6 +13,7 @@ type Member = {
   degree?: string
   photoUrl?: string
   admin?: boolean
+  graduationYear?: number
 }
 
 export function MemberManagePage() {
@@ -32,6 +33,7 @@ export function MemberManagePage() {
   const [editOriginalRole, setEditOriginalRole] = useState<'NONE' | 'MEMBER' | 'ALUMNI' | 'PROFESSOR'>('MEMBER')
   const [editPassword, setEditPassword] = useState('')
   const [editAdmin, setEditAdmin] = useState(false)
+  const [editGraduationYear, setEditGraduationYear] = useState<string>('')
 
   // 새 멤버 추가 폼
   const [newName, setNewName] = useState('')
@@ -58,8 +60,10 @@ export function MemberManagePage() {
   const loadMembers = async () => {
     try {
       const { data } = await api.get<Member[]>('/members')
-      setMembers(data)
-      setOrdering(data)
+      // Current 멤버만 필터링 (Alumni 제외)
+      const currentMembers = data.filter(m => m.role !== 'ALUMNI')
+      setMembers(currentMembers)
+      setOrdering(currentMembers)
     } catch (error: any) {
       setMsg(error?.response?.data?.message || '멤버 목록 로딩 실패')
     }
@@ -79,6 +83,7 @@ export function MemberManagePage() {
     setEditRole(role)
     setEditOriginalRole(role)
     setEditPassword('')
+    setEditGraduationYear(member.graduationYear ? String(member.graduationYear) : '')
     // 서버 응답에 admin 불리언이 포함됨
     // @ts-ignore
     setEditAdmin(!!(member as any).admin)
@@ -91,6 +96,7 @@ export function MemberManagePage() {
     setEditRole('MEMBER')
     setEditPassword('')
     setEditAdmin(false)
+    setEditGraduationYear('')
   }
 
   const saveEdit = async (id: number) => {
@@ -100,7 +106,8 @@ export function MemberManagePage() {
         degree: editDegree || null,
         admin: editAdmin,
         email: null,
-        phone: null
+        phone: null,
+        graduationYear: editGraduationYear ? parseInt(editGraduationYear) : null
       }
       if (editRole !== editOriginalRole) {
         payload.role = editRole
@@ -111,6 +118,13 @@ export function MemberManagePage() {
       await api.put(`/members/admin/${id}`, payload, { headers: withUser() })
       setEditingId(null)
       setMsg('저장되었습니다.')
+      
+      // 역할이 Alumni로 변경되면 Alumni 관리 페이지로 이동
+      if (editRole === 'ALUMNI' && editRole !== editOriginalRole) {
+        navigate('/members/manage/alumni')
+        return
+      }
+      
       loadMembers()
     } catch (error: any) {
       console.error('저장 실패:', error)
@@ -173,7 +187,8 @@ export function MemberManagePage() {
         email: null,
         phone: null,
         degree: newDegree,
-        studentId: null
+        studentId: null,
+        graduationYear: null
       }, { headers: withUser() })
       setShowAddForm(false)
       setNewName('')
@@ -193,8 +208,9 @@ export function MemberManagePage() {
     <div className="container">
       <div className="section">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h1 className="card-title" style={{ fontSize: '2rem', marginBottom: 0 }}>멤버 관리</h1>
+          <h1 className="card-title" style={{ fontSize: '2rem', marginBottom: 0 }}>Current 관리</h1>
           <div style={{ display:'flex', gap:8 }}>
+            <Link to="/members/manage/alumni" className="btn-secondary">Alumni 관리</Link>
             <button onClick={saveOrder} className="btn-primary">순서 저장</button>
             <button onClick={() => setShowAddForm(!showAddForm)} className="btn-primary">멤버 추가</button>
           </div>
@@ -240,9 +256,11 @@ export function MemberManagePage() {
                 <select value={newRole} onChange={(e) => setNewRole(e.target.value as any)} className="input-field">
                   <option value="NONE">-</option>
                   <option value="MEMBER">Current</option>
-                  <option value="ALUMNI">Alumni</option>
                   <option value="PROFESSOR">Professor</option>
                 </select>
+                <div style={{ fontSize: 12, color: '#666', marginTop: 4 }}>
+                  Alumni는 <Link to="/members/manage/alumni" style={{ color: '#3a4978' }}>Alumni 관리 페이지</Link>에서 추가하세요.
+                </div>
               </div>
               <div>
                 <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -274,7 +292,14 @@ export function MemberManagePage() {
               </tr>
             </thead>
             <tbody>
-              {ordering.map((member, i) => (
+              {ordering.length === 0 ? (
+                <tr>
+                  <td colSpan={7} style={{ padding: 24, textAlign: 'center', color: '#999' }}>
+                    등록된 Current 멤버가 없습니다.
+                  </td>
+                </tr>
+              ) : (
+                ordering.map((member, i) => (
                 <tr key={member.id} style={{ borderBottom: '1px solid #eee' }}>
                   <td style={{ padding: 12, textAlign:'center' }}>{editingId === member.id ? 
                     <input value={editName} onChange={(e) => setEditName(e.target.value)} className="input-field" style={{ width: '100%' }} /> : member.name}
@@ -292,6 +317,18 @@ export function MemberManagePage() {
                     </select> :
                     (member.role === 'ALUMNI' ? 'Alumni' : member.role === 'PROFESSOR' ? 'Professor' : member.role === 'NONE' ? '-' : 'Current')}
                   </td>
+                  <td style={{ padding: 12, textAlign:'center' }}>{editingId === member.id && editRole === 'ALUMNI' ? (
+                    <input 
+                      type="number" 
+                      value={editGraduationYear} 
+                      onChange={(e) => setEditGraduationYear(e.target.value)} 
+                      className="input-field" 
+                      style={{ width: '100%' }}
+                      placeholder="졸업년도"
+                      min="2000"
+                      max="2100"
+                    />
+                  ) : '-'}</td>
                   <td style={{ padding: 12, textAlign:'center' }}>{editingId === member.id ?
                     <input type="checkbox" checked={editAdmin} onChange={(e) => setEditAdmin(e.target.checked)} disabled={(members.filter((m: any) => m.admin).length === 1) && (member as any).admin === true} /> :
                     ((member as any).admin ? '관리자' : '-')}
@@ -318,7 +355,7 @@ export function MemberManagePage() {
                     <button onClick={() => moveDown(i)} className="btn-secondary">▼</button>
                   </td>
                 </tr>
-              ))}
+              )))}
             </tbody>
           </table>
         </div>

@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 
 @Service
@@ -18,7 +19,7 @@ public class AttendanceService {
     private final MemberRepository memberRepository;
 
     public Attendance checkIn(Member member) {
-        LocalDate today = LocalDate.now();
+        LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
         Attendance attendance = attendanceRepository.findByMemberAndWorkDate(member, today)
                 .orElseGet(() -> {
                     Attendance a = new Attendance();
@@ -33,7 +34,7 @@ public class AttendanceService {
     }
 
     public Attendance checkOut(Member member) {
-        LocalDate today = LocalDate.now();
+        LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
         Attendance attendance = attendanceRepository.findByMemberAndWorkDate(member, today)
                 .orElseThrow(() -> new IllegalStateException("출근 기록이 없습니다."));
         attendance.setCheckOutAt(Instant.now());

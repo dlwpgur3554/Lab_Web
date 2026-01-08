@@ -23,8 +23,54 @@ server:
 
 logging:
   level:
-    org.hibernate.SQL: info
+    root: WARN  # 기본 로그 레벨: 경고 이상만 출력
+    com.lab: INFO  # 애플리케이션 로그: 정보 레벨
+    com.lab.web.ApiAdvice: WARN  # 에러 처리: 경고 이상만
+    com.lab.util.JwtUtil: WARN  # JWT 유틸: 경고 이상만 (보안)
+    com.lab.web.filter: WARN  # 필터: 경고 이상만
+    org.hibernate: WARN  # Hibernate 전체: 경고 이상만
+    org.hibernate.SQL: WARN  # SQL 쿼리: 경고 이상만 (프로덕션)
+    org.hibernate.type.descriptor.sql.BasicBinder: WARN  # SQL 파라미터 바인딩: 경고 이상만
+    org.springframework: WARN  # Spring 프레임워크: 경고 이상만
+    org.springframework.security: WARN  # Spring Security: 경고 이상만
+    org.springframework.web: WARN  # Spring Web: 경고 이상만
+    org.springframework.boot: WARN  # Spring Boot: 경고 이상만
+    org.apache.tomcat: WARN  # Tomcat: 경고 이상만
+    org.apache.catalina: WARN  # Catalina: 경고 이상만
+    com.zaxxer.hikari: WARN  # HikariCP (커넥션 풀): 경고 이상만
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"  # 간단한 로그 포맷 (프로덕션)
 
-# OpenAPI UI: http://localhost:8080/swagger-ui/index.html
+jwt:
+  secret: ${JWT_SECRET:your-secret-key-change-this-in-production-minimum-256-bits-required-for-hmac-sha}
+  expiration: ${JWT_EXPIRATION:86400000} # 24시간 (밀리초)
+
+attendance:
+  allowed-ips: ${ATTENDANCE_ALLOWED_IPS:172.21.166.211,172.21.166.212,172.21.166.213,172.21.166.214,172.21.166.215,172.21.166.216,172.21.166.217,172.21.166.218,172.21.166.219,172.21.166.220,172.21.166.221,172.21.166.222,172.21.166.223,172.21.166.224,172.21.166.225,172.21.166.226,172.21.166.227,172.21.166.228,172.21.166.229,172.21.166.230,172.21.166.231,172.21.166.232,172.21.166.233,172.21.166.234,172.21.166.235,172.21.166.236,172.21.166.237,172.21.166.238,172.21.166.239,172.21.166.240,192.168.0.11}
+
+# Rate Limiting 설정 (무차별 대입 공격 방지)
+rate-limit:
+  general:
+    requests: ${RATE_LIMIT_GENERAL_REQUESTS:100}  # 일반 API: 1분당 100회
+    window-minutes: ${RATE_LIMIT_GENERAL_WINDOW:1}  # 시간 윈도우 (분)
+  login:
+    requests: ${RATE_LIMIT_LOGIN_REQUESTS:5}  # 로그인 API: 5분당 5회 (더 엄격)
+    window-minutes: ${RATE_LIMIT_LOGIN_WINDOW:5}  # 시간 윈도우 (분)
+  upload:
+    requests: ${RATE_LIMIT_UPLOAD_REQUESTS:10}  # 파일 업로드: 1분당 10회
+    window-minutes: ${RATE_LIMIT_UPLOAD_WINDOW:1}  # 시간 윈도우 (분)
+
+# Swagger/OpenAPI 설정 (프로덕션에서 비활성화)
+springdoc:
+  api-docs:
+    enabled: false # Swagger UI 비활성화 (보안)
+  swagger-ui:
+    enabled: false # Swagger UI 완전 비활성화
+
 # 위 설정은 개발용 기본 DB/포트 설정을 제공합니다.
+# 
+# 보안 설정:
+# - JWT_SECRET: 프로덕션 환경에서는 반드시 강력한 시크릿 키로 변경하세요 (최소 256비트)
+# - JWT_EXPIRATION: 토큰 만료 시간 (밀리초, 기본 24시간)
+# - Swagger UI: 프로덕션에서 비활성화됨 (활성화하려면 springdoc.api-docs.enabled=true 설정)
 

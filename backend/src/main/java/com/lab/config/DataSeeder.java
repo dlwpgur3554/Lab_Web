@@ -19,53 +19,7 @@ public class DataSeeder implements ApplicationRunner {
     @Override
     public void run(ApplicationArguments args) {
 
-        // 사용자 제공 목록 기반 멤버 데이터 생성
-        Member prof = getByLoginOrName("waver", "신광성");
-        if (prof.getId() == null) {
-            prof.setName("신광성");
-            prof.setLoginId("waver");
-            prof.setPassword("waver");
-            prof.setRole(Role.PROFESSOR);
-        } else if (prof.getLoginId() == null || prof.getLoginId().isBlank()) {
-            prof.setLoginId("waver");
-        }
-
-        Member lead = getByLoginOrName("20204400", "전지환");
-        if (lead.getId() == null) {
-            lead.setName("전지환");
-            lead.setLoginId("20204400");
-            lead.setPassword("20204400");
-            lead.setRole(Role.LAB_LEAD);
-        } else if (lead.getLoginId() == null || lead.getLoginId().isBlank()) {
-            lead.setLoginId("20204400");
-        }
-
-        memberRepository.save(prof);
-        memberRepository.save(lead);
-
-        String[][] students = new String[][]{
-                {"배슬찬","20204414","20204414"},
-                {"김수민","20224317","20224317"},
-                {"김민석","20214301","20214301"},
-                {"노경민","20214380","20214380"},
-                {"이제혁","20214369","20214369"},
-                {"김주형","20224313","20224313"},
-                {"김연지","20244339","20244339"}
-        };
-        for (String[] s : students) {
-            Member m = getByLoginOrName(s[1], s[0]);
-            if (m.getId() == null) {
-                m.setName(s[0]);
-                m.setLoginId(s[1]);
-                m.setPassword(s[2]);
-                m.setRole(Role.MEMBER);
-                memberRepository.save(m);
-            } else if (m.getLoginId() == null || m.getLoginId().isBlank()) {
-                m.setLoginId(s[1]);
-                memberRepository.save(m);
-            }
-        }
-
+        // admin 계정 생성
         Member admin = getByLoginOrName("admin", "admin");
         if (admin.getId() == null) {
             admin.setName("admin");
@@ -90,7 +44,12 @@ public class DataSeeder implements ApplicationRunner {
         labInfo.setLocation("순천대학교 공과대학 3호관 403호");
         labInfo.setContactEmail("ksshin@knu.ac.kr");
         labInfo.setContactPhone("053-950-5555");
-        labInfo.setDirector(prof);
+        // 교수 역할의 멤버를 찾아서 director로 설정 (없으면 null)
+        Member director = memberRepository.findAll().stream()
+                .filter(m -> m.getRole() == Role.PROFESSOR)
+                .findFirst()
+                .orElse(null);
+        labInfo.setDirector(director);
         labInfoRepository.save(labInfo);
 
         // 프로젝트 자동 생성 제거(초기 데이터 강제 주입하지 않음)
